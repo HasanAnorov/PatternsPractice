@@ -1,4 +1,4 @@
-# provider_practice
+# Architecture Patterns Examples
 
 A new Flutter project.
 
