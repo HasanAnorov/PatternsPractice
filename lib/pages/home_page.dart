@@ -25,7 +25,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Provider Practice"),
+        title: const Text("Scoped Model Practice"),
         centerTitle: true,
       ),
       body: ScopedModel<HomeScoped>(
