@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:provider_practice/blocks/list_post_cubit.dart';
+import 'package:provider_practice/blocks/list_post_state.dart';
+import 'package:provider_practice/views/view_of_home.dart';
 import '../model/post_model.dart';
-import '../service/network_service.dart';
 
 class HomePage extends StatefulWidget {
   static const id = "home_page";
@@ -12,75 +15,21 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
 
-  bool isLoading = false;
   var items =  <Post>[];
 
   void  onDelete(Post post){
-    apiDeletePost(post).then((value) => {
-      if(value){
-        _apiPostList(),
-      }
-    });
+    // apiDeletePost(post).then((value) => {
+    //   if(value){
+    //     _apiPostList(),
+    //   }
+    // });
   }
   void onEdit(){}
 
-  Future _apiPostList() async{
-
-    setState(() {
-      isLoading = true;
-    });
-
-    var response = await NetworkService.GET(NetworkService.api_list, NetworkService.paramsEmpty());
-
-    //set state
-    setState(() {
-      if(response !=null){
-        print("response not null");
-        items = NetworkService.parsePostList(response);
-      }
-      isLoading = false;
-    });
-  }
-
-  void _apiUpdatePost(Post post) async {
-
-    setState(() {
-      isLoading = true;
-    });
-
-    var response = await NetworkService.PUT(NetworkService.api_put+post.id.toString(), NetworkService.paramsUpdate(post));
-
-    setState(() {
-      if(response !=null){
-        _apiPostList();
-      }else{
-        items = List<Post>.empty();
-      }
-      isLoading = false;
-    });
-  }
-
-  Future<bool> apiDeletePost(Post post) async{
-
-    isLoading = true;
-
-    var response = await NetworkService.PUT(NetworkService.api_delete+post.id.toString(), NetworkService.paramsEmpty());
-
-    setState(() {
-      if(response != null){
-        _apiPostList();
-      }else{
-        items = List<Post>.empty();
-      }
-      isLoading =false;
-    });
-
-    return response!=null;
-  }
 
   @override
   void initState() {
-    _apiPostList();
+    BlocProvider.of<ListPostCubit>(context).apiPostList();
     super.initState();
   }
 
@@ -88,24 +37,29 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Bloc Practice"),
+        title: const Text("BloC"),
         centerTitle: true,
       ),
-      body: Stack(
-        children: [
-          ListView.builder(
-            itemBuilder: (ctx,index){
-              return itemOfPost(items[index]);
-            },
-            itemCount: items.length,
-          ),
-          isLoading ? const Center(
-            child: CircularProgressIndicator(),
-          ) :const SizedBox.shrink()
-        ],
+      body: BlocBuilder<ListPostCubit,ListPostState>(
+        builder: (BuildContext context , ListPostState state){
+
+          if(state is ListPostError){
+            return viewOfHome(items, true);
+          }
+
+          if(state is ListPostLoaded){
+            items = state.posts;
+            return  viewOfHome(items, false);
+          }
+
+          return viewOfHome(items,true);
+
+        }
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {  },
+        onPressed: () {
+          BlocProvider.of<ListPostCubit>(context).callCreatePage(context);
+        },
         child: const Icon(Icons.add),
       ),
     );

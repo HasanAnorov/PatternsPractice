@@ -2,7 +2,7 @@ class Post {
   final int id;
   final String title ;
   final String body ;
-  final int userId ;
+  late final int userId ;
 
 
   Post({
